@@ -1,31 +1,15 @@
-﻿<Project Sdk="Microsoft.NET.Sdk">
+<Project Sdk="Microsoft.NET.Sdk">
+
   <PropertyGroup>
-    <TargetFrameworks>net9.0;net6.0;netstandard2.1;netstandard2.0;net47</TargetFrameworks>
-    <Version>0.4.5.2</Version>
-	<Copyright>Copyright © ingenWorkS 2021</Copyright>
-	<Company>ingenWorkS</Company>
-	<Authors>ingen084</Authors>
-	<GeneratePackageOnBuild>true</GeneratePackageOnBuild>
-	<Description>.NETから簡単に強震モニタを利用できるようにするライブラリ</Description>
-	<Configurations>Debug;Release</Configurations>
-	<PackageLicenseFile>LICENSE</PackageLicenseFile>
-	<RepositoryUrl>https://github.com/ingen084/KyoshinMonitorLib</RepositoryUrl>
-	<RepositoryType>git</RepositoryType>
-    <DocumentationFile>bin\$(Configuration)\$(TargetFramework)\$(AssemblyName).xml</DocumentationFile>
-    
-    <LangVersion>latest</LangVersion>
-    <Nullable>enable</Nullable>
+    <!-- System.Text.Json はビルドするターゲットのランタイムに合わせて最新を使用する -->
+    <!-- net10.0 は 10.0 系、それ以外(net8.0/netstandard/net47)は最低モダンサポートの net8 に合わせ 8.0 系の最新パッチ -->
+    <SystemTextJsonVersion>8.0.*</SystemTextJsonVersion>
+    <SystemTextJsonVersion Condition="'$(TargetFramework)' == 'net10.0'">10.0.*</SystemTextJsonVersion>
   </PropertyGroup>
-	
+
   <ItemGroup>
-	<PackageReference Include="MessagePack" Version="2.5.192" />
-	<PackageReference Include="System.Text.Json" Version="9.0.0" />
+    <PackageReference Include="MessagePack" Version="3.1.7" />
+    <PackageReference Include="System.Text.Json" Version="$(SystemTextJsonVersion)" />
   </ItemGroup>
-	
-  <ItemGroup>
-	<None Include="..\..\LICENSE">
-	  <Pack>True</Pack>
-	  <PackagePath></PackagePath>
-	</None>
-  </ItemGroup>
+
 </Project>

@@ -1,0 +1,31 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <OutputType>Exe</OutputType>
+    <!-- 画像色取得のベンチマーク用コンソールアプリ。パッケージ化せず単一ターゲットでビルドする -->
+    <!-- Directory.Build.props の TargetFrameworks(複数)を打ち消して単一ターゲットにする -->
+    <TargetFrameworks></TargetFrameworks>
+    <TargetFramework>net10.0</TargetFramework>
+    <IsPackable>false</IsPackable>
+    <GeneratePackageOnBuild>false</GeneratePackageOnBuild>
+    <!-- ベンチマークは公開ライブラリではないため XML ドキュメント生成は不要 -->
+    <GenerateDocumentationFile>false</GenerateDocumentationFile>
+    <!-- Windows 専用の System.Drawing をテストデータ生成に使う前提のため CA1416 は抑制 -->
+    <NoWarn>$(NoWarn);CA1416</NoWarn>
+    <!-- 現行実装(LockBits + Span)のベースライン複製で unsafe を使う -->
+    <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <PackageReference Include="BenchmarkDotNet" Version="0.15.8" />
+    <PackageReference Include="SkiaSharp" Version="2.88.9" />
+    <PackageReference Include="System.Drawing.Common" Version="9.0.0" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\KyoshinMonitorLib\KyoshinMonitorLib.csproj" />
+    <ProjectReference Include="..\KyoshinMonitorLib.Images\KyoshinMonitorLib.Images.csproj" />
+    <ProjectReference Include="..\KyoshinMonitorLib.SkiaImages\KyoshinMonitorLib.SkiaImages.csproj" />
+  </ItemGroup>
+
+</Project>

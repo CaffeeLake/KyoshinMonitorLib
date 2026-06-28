@@ -262,3 +262,6 @@ __pycache__/
 
 # Debug PointsData
 /src/Tests/ShindoObsPoints.*
+
+# BenchmarkDotNet の成果物
+BenchmarkDotNet.Artifacts/

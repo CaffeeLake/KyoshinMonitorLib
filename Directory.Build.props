@@ -1,0 +1,36 @@
+<Project>
+
+  <!-- 全プロジェクト共通のメタデータとビルド設定 -->
+  <PropertyGroup>
+    <!-- バージョンはここで一元管理する -->
+    <Version>0.4.6</Version>
+    <Copyright>Copyright © ingenWorkS 2021</Copyright>
+    <Company>ingenWorkS</Company>
+    <Authors>ingen084</Authors>
+
+    <Configurations>Debug;Release</Configurations>
+    <LangVersion>latest</LangVersion>
+    <Nullable>enable</Nullable>
+  </PropertyGroup>
+
+  <!--
+    NuGet パッケージとして発行するライブラリ共通の設定。
+    ターゲットフレームワークはここで一元管理する。
+    Tests は TargetFramework(単数)を指定しているため、この TargetFrameworks(複数)は無視され影響を受けない。
+    パッケージ化したくないプロジェクト(Tests など)は <IsPackable>false</IsPackable> を指定すること。
+  -->
+  <PropertyGroup>
+    <TargetFrameworks>net10.0;net8.0;netstandard2.1;netstandard2.0;net47</TargetFrameworks>
+    <GeneratePackageOnBuild>true</GeneratePackageOnBuild>
+    <Description>.NETから簡単に強震モニタを利用できるようにするライブラリ</Description>
+    <PackageLicenseFile>LICENSE</PackageLicenseFile>
+    <RepositoryUrl>https://github.com/ingen084/KyoshinMonitorLib</RepositoryUrl>
+    <RepositoryType>git</RepositoryType>
+    <GenerateDocumentationFile>true</GenerateDocumentationFile>
+  </PropertyGroup>
+
+  <ItemGroup Condition="'$(IsPackable)' != 'false'">
+    <None Include="$(MSBuildThisFileDirectory)LICENSE" Pack="True" PackagePath="" />
+  </ItemGroup>
+
+</Project>

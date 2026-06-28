@@ -178,12 +178,13 @@ namespace KyoshinMonitorLib.Images
 			if (v <= 0.1 || s <= 0.75)
 				return 0;
 
+			// 元の多項式と等価だが Math.Pow を使わず Horner 法で評価する (乗算のみで高速)
 			if (h > 0.1476)
-				return 280.31 * Math.Pow(h, 6) - 916.05 * Math.Pow(h, 5) + 1142.6 * Math.Pow(h, 4) - 709.95 * Math.Pow(h, 3) + 234.65 * Math.Pow(h, 2) - 40.27 * h + 3.2217;
+				return ((((((280.31 * h - 916.05) * h + 1142.6) * h - 709.95) * h + 234.65) * h - 40.27) * h) + 3.2217;
 			else if (h > 0.001)
-				return 151.4 * Math.Pow(h, 4) - 49.32 * Math.Pow(h, 3) + 6.753 * Math.Pow(h, 2) - 2.481 * h + 0.9033;
+				return ((((151.4 * h - 49.32) * h + 6.753) * h - 2.481) * h) + 0.9033;
 			else
-				return -0.005171 * Math.Pow(v, 2) - 0.3282 * v + 1.2236;
+				return ((-0.005171 * v - 0.3282) * v) + 1.2236;
 		}
 
 		/// <summary>

@@ -2,7 +2,6 @@
 using SkiaSharp;
 using System;
 using System.Collections.Generic;
-using System.Diagnostics;
 using System.Linq;
 using System.Threading.Tasks;
 
@@ -87,34 +86,50 @@ namespace KyoshinMonitorLib.SkiaImages
 		/// <returns>震度情報が追加された観測点情報の配列</returns>
 		public static IEnumerable<ImageAnalysisResult> ParseScaleFromImage(this IEnumerable<ImageAnalysisResult> points, SKBitmap bitmap)
 		{
+			var width = bitmap.Width;
+			var height = bitmap.Height;
+			var rowBytes = bitmap.RowBytes;
+			var bytesPerPixel = bitmap.BytesPerPixel;
+			var colorType = bitmap.ColorType;
+			// GetPixel は呼び出しごとにネイティブ呼び出しが入るため、ピクセルバッファを直接読む。
+			// 一般的にデコード結果は Bgra8888 / Rgba8888 (4byte/px) なので、その場合のみ高速パスを使う。
+			var fastPath = bytesPerPixel == 4 && (colorType == SKColorType.Bgra8888 || colorType == SKColorType.Rgba8888);
+			var pixels = fastPath ? bitmap.GetPixelSpan() : default;
 
-			//var pixelData = bitmap.GetPixelSpan();
 			foreach (var point in points)
 			{
-				if (point.ObservationPoint.Point == null || point.ObservationPoint.IsSuspended)
+				var op = point.ObservationPoint;
+				if (op.Point is not Point2 p || op.IsSuspended)
+				{
+					point.AnalysisResult = null;
+					continue;
+				}
+				// 画像範囲外の座標は無視する
+				if ((uint)p.X >= (uint)width || (uint)p.Y >= (uint)height)
 				{
 					point.AnalysisResult = null;
 					continue;
 				}
 
-				try
+				SKColor color;
+				if (fastPath)
 				{
-					var color = bitmap.GetPixel(point.ObservationPoint.Point.Value.X, point.ObservationPoint.Point.Value.Y);
-					// [(bitmap.Width * point.ObservationPoint.Point.Value.Y + point.ObservationPoint.Point.Value.X) * 4];
-					point.Color = color;
-					if (color.Alpha != 255)
-					{
-						point.AnalysisResult = null;
-						continue;
-					}
-
-					point.AnalysisResult = ColorConverter.ConvertToScaleAtPolynomialInterpolation(color);
+					var offset = (rowBytes * p.Y) + (p.X * bytesPerPixel);
+					var b0 = pixels[offset];
+					var b1 = pixels[offset + 1];
+					var b2 = pixels[offset + 2];
+					var a = pixels[offset + 3];
+					// Bgra8888 は B,G,R,A の順。Rgba8888 は R,G,B,A の順。
+					color = colorType == SKColorType.Bgra8888
+						? new SKColor(b2, b1, b0, a)
+						: new SKColor(b0, b1, b2, a);
 				}
-				catch (Exception ex)
+				else
 				{
-					point.AnalysisResult = null;
-					Debug.WriteLine("parseEx: " + ex.ToString());
+					color = bitmap.GetPixel(p.X, p.Y);
 				}
+				point.Color = color;
+				point.AnalysisResult = color.Alpha == 255 ? ColorConverter.ConvertToScaleAtPolynomialInterpolation(color) : (double?)null;
 			}
 			return points;
 		}

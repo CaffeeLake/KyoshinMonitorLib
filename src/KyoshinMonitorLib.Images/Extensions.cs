@@ -1,7 +1,6 @@
 ﻿using KyoshinMonitorLib.UrlGenerator;
 using System;
 using System.Collections.Generic;
-using System.Diagnostics;
 using System.Drawing;
 using System.Drawing.Imaging;
 using System.IO;
@@ -91,37 +90,53 @@ namespace KyoshinMonitorLib.Images
 		/// <returns>震度情報が追加された観測点情報の配列</returns>
 		public static IEnumerable<ImageAnalysisResult> ParseScaleFromImage(this IEnumerable<ImageAnalysisResult> points, Bitmap bitmap)
 		{
-			var data = bitmap.LockBits(new Rectangle(0, 0, bitmap.Width, bitmap.Height), ImageLockMode.ReadOnly, PixelFormat.Format8bppIndexed);
-			Span<byte> pixelData;
-			unsafe
+			var width = bitmap.Width;
+			var height = bitmap.Height;
+			var data = bitmap.LockBits(new Rectangle(0, 0, width, height), ImageLockMode.ReadOnly, PixelFormat.Format8bppIndexed);
+			try
 			{
-				pixelData = new Span<byte>(data.Scan0.ToPointer(), bitmap.Width * bitmap.Height);
-			}
-			foreach (var point in points)
-			{
-				if (point.ObservationPoint.Point == null || point.ObservationPoint.IsSuspended)
+				// 8bpp インデックスカラーは行ごとに 4 バイト境界へパディングされるため Stride を使う (幅とは限らない)
+				var stride = data.Stride;
+				Span<byte> pixelData;
+				unsafe
 				{
-					point.AnalysisResult = null;
-					continue;
+					pixelData = new Span<byte>(data.Scan0.ToPointer(), stride * height);
 				}
 
-				try
+				// 強震モニタの画像は GIF (パレット最大 256 色)。色→スケール変換は重いので
+				// 観測点ごとではなくパレットエントリごとに 1 度だけ計算してテーブル化する。
+				// あわせて bitmap.Palette (取得のたびに GDI+ 呼び出し + 配列確保が発生) をループ外で 1 度だけ参照する。
+				var entries = bitmap.Palette.Entries;
+				var scaleTable = new double?[entries.Length];
+				for (var i = 0; i < entries.Length; i++)
 				{
-					var color = bitmap.Palette.Entries[pixelData[bitmap.Width * point.ObservationPoint.Point.Value.Y + point.ObservationPoint.Point.Value.X]];
-					point.Color = color;
-					if (color.A != 255)
+					var entry = entries[i];
+					scaleTable[i] = entry.A == 255 ? ColorConverter.ConvertToScaleAtPolynomialInterpolation(entry) : (double?)null;
+				}
+
+				foreach (var point in points)
+				{
+					var op = point.ObservationPoint;
+					if (op.Point is not Point2 p || op.IsSuspended)
+					{
+						point.AnalysisResult = null;
+						continue;
+					}
+					// 画像範囲外の座標は無視する
+					if ((uint)p.X >= (uint)width || (uint)p.Y >= (uint)height)
 					{
 						point.AnalysisResult = null;
 						continue;
 					}
 
-					point.AnalysisResult = ColorConverter.ConvertToScaleAtPolynomialInterpolation(color);
+					var index = pixelData[(stride * p.Y) + p.X];
+					point.Color = entries[index];
+					point.AnalysisResult = scaleTable[index];
 				}
-				catch (Exception ex)
-				{
-					point.AnalysisResult = null;
-					Debug.WriteLine("parseEx: " + ex.ToString());
-				}
+			}
+			finally
+			{
+				bitmap.UnlockBits(data);
 			}
 			return points;
 		}
