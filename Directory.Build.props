@@ -3,7 +3,7 @@
   <!-- 全プロジェクト共通のメタデータとビルド設定 -->
   <PropertyGroup>
     <!-- バージョンはここで一元管理する -->
-    <Version>0.4.6</Version>
+    <Version>0.4.6.1</Version>
     <Copyright>Copyright © ingenWorkS 2021</Copyright>
     <Company>ingenWorkS</Company>
     <Authors>ingen084</Authors>

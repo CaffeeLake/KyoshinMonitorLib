@@ -27,7 +27,7 @@ namespace KyoshinMonitorLib.UrlGenerator
 		/// <para>2:日付</para>
 		/// <para>3:時間</para>
 		/// </summary>
-		public const string RealtimeBase = "https://smi.lmoniexp.bosai.go.jp/data/map_img/RealTimeImg/{0}_{1}/{2}/{3}.{0}_{1}.gif";
+		public const string RealtimeBase = "https://www.lmoni.bosai.go.jp/img_svr/data/map_img/RealTimeImg/{0}_{1}/{2}/{3}.{0}_{1}.gif";
 
 		/// <summary>
 		/// RealtimeImg(長周期地震動階級)のベースURL
@@ -49,7 +49,7 @@ namespace KyoshinMonitorLib.UrlGenerator
 		/// <para>0:日付</para>
 		/// <para>1:時間</para>
 		/// </summary>
-		public const string EstShindoBase = "https://smi.lmoniexp.bosai.go.jp/data/map_img/EstShindoImg/eew/{0}/{1}.eew.gif";
+		public const string EstShindoBase = "https://www.lmoni.bosai.go.jp/img_svr/data/map_img/EstShindoImg/eew/{0}/{1}.eew.gif";
 
 		/// <summary>
 		/// 与えられた値を使用してURLを生成します。
